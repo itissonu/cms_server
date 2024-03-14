@@ -1,13 +1,16 @@
+//const Mentors = require("../models/Mentors");
 const OTP = require("../models/OTP");
-const User = require("../models/user")
 const bcrypt = require("bcryptjs");
 const generateAuthToken = require("../utils/JWTtoken");
+const Mentors = require("../models/Mentors");
 
-const userRegister = async (req, res, next) => {
+//register
+const MentorRegister = async (req, res, next) => {
     try {
         const { email, otp, ...data } = req.body;
+        console.log({ email, otp, ...data })
 
-        const user = await User.findOne({ email });
+        const user = await Mentors.findOne({ email });
         if (user) {
             return res.status(400).json({
                 success: false,
@@ -24,17 +27,14 @@ const userRegister = async (req, res, next) => {
         }
 
         let hashedpassword = await bcrypt.hash(email, 10);
-        const newUser = new User({
+        const newUser = new Mentors({
             password: hashedpassword,
             email: email,
             ...data
         });
         await newUser.save();
-
-        // console.log(newUser + "new User")
-
+        console.log(newUser + "new User")
         const token = await generateAuthToken(newUser);
-
         res.cookie("token", token, {
             expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
             httpOnly: true,
@@ -46,18 +46,21 @@ const userRegister = async (req, res, next) => {
             , token,
         });
 
-    } catch (error) {
 
+    } catch (error) {
+        console.log(error)
         return res.status(500).json({ success: false, error: error.message });
     }
 
 }
 
-//login 
-const userLogin = async (req, res, next) => {
+//login
+
+const MentorLogin = async (req, res, next) => {
+
+
     try {
         const { email, password } = req.body;
-
         if (!email || !password) {
             return res.status(400).json({
                 success: false,
@@ -65,7 +68,7 @@ const userLogin = async (req, res, next) => {
             });
         }
         console.log(email)
-        const user = await User.findOne({ email: email });
+        const user = await Mentors.findOne({ email: email });
 
         if (!user) {
             return res.status(401).json({
@@ -73,78 +76,25 @@ const userLogin = async (req, res, next) => {
                 message: 'No User found ',
             });
         }
-        console.log(password)
+
         if (!await bcrypt.compare(password, user.password)) {
             return res.status(401).json({
                 success: false,
                 message: 'Password did not match ',
             });
         }
+
         req.userdata = user;
+
         next();
 
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
-}
-
-//otp verification
-
-const OTPverificationUser = async (req, res, next) => {
-    try {
-        const otp = req.body.otp;
-        //console.log(otp)
-        const response = await OTP.find({ otp: otp }).sort({ createdAt: -1 }).limit(1);
-        if (response.length === 0 || otp !== response[0].otp) {
-
-            return res.status(400).json({
-                success: false,
-                message: 'The OTP is not valid',
-            });
-
-        }
-        const user = await User.findOne({ email: response[0].email }).select('-password')
-        const token = await generateAuthToken(user);
-        res.cookie("token", token, {
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-            httpOnly: true,
-            secure: true,
-            sameSite: 'None',
-        }).status(200).json({
-            success: true,
-            message: "login success", token,
-        })
-
-    } catch (error) {
-
-        return res.status(500).json({ success: false, error: error.message });
-    }
-}
-
-// get a singleuser
-const getaUser = async (req, res, next) => {
-    try {
-        const user = await User.findById(req.params.id).populate('Course','CourseName').populate('Department','DepartmentName').populate('Section','SectionName').select('-password');
-        
-        if (!user) {
-            return res.status(401).json({
-                success: false,
-                message: 'No User found ',
-            });
-        }
-        res.status(201).json({
-            success: true,
-            user
-        })
-    } catch (error) {
-        return res.status(500).json({ success: false, error: error.message });
-    }
 
 }
-
-//logout 
-
-const Logout = async (req, res) => {
+//logout
+const mentorLogout = async (req, res) => {
 
     try {
 
@@ -166,22 +116,56 @@ const Logout = async (req, res) => {
     }
 }
 
-const getAlluser = async (req, res, next) => {
-
+//Get A specific teacher
+const getaMentor = async (req, res, next) => {
     try {
-        const users = await User.find().select('-password')
+        const user = await Mentors.findById(req.params.id).populate('Course', 'CourseName').populate('Department', 'DepartmentName').select('-password');
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'No User found ',
+            });
+        }
+        res.status(201).json({
+            success: true,
+            user
+        })
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+
+//Get all teacher
+
+const getAllMentor = async (req, res, next) => {
+    try {
+        const users = await Mentors.find().select('-password')
         res.status(201).
             json({ success: true, users })
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+//update a user
+const updateMentor = async (req, res, next) => {
+    try {
+
+
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
     }
 
 }
 
-const DeleteAUser = async (req, res, next) => {
+//Delete A Mentor
+
+const DeleteAMentor = async (req, res, next) => {
 
     try {
-        const result = await User.deleteOne({ _id: req.params.id });
+        const result = await Mentors.deleteOne({ _id: req.params.id });
 
         if (result.deletedCount === 0) {
             return res.status(500).json({ success: false, error: error.message });
@@ -197,10 +181,47 @@ const DeleteAUser = async (req, res, next) => {
 
 }
 
-const updateUser = async (req, res, next) => {
-    
+//otp verification
+const OTPverification = async (req, res, next) => {
 
+    try {
+
+        const otp = req.body.otp;
+        //console.log(otp)
+
+        const response = await OTP.find({ otp: otp }).sort({ createdAt: -1 }).limit(1);
+
+
+        if (response.length === 0 || otp !== response[0].otp) {
+
+            return res.status(400).json({
+                success: false,
+                message: 'The OTP is not valid',
+            });
+
+        }
+
+        const user = await Mentors.findOne({ email: response[0].email })
+
+        const token = await generateAuthToken(user);
+
+        res.cookie("token", token, {
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+        }).status(200).json({
+            success: true,
+
+            message: "login success", token,
+        })
+
+    } catch (error) {
+
+        return res.status(500).json({ success: false, error: error.message });
+    }
 }
+
 module.exports = {
-    userLogin, userRegister, getAlluser, getaUser, updateUser,OTPverificationUser,Logout,DeleteAUser
+    MentorLogin, MentorRegister, getAllMentor, getaMentor, updateMentor, OTPverification, mentorLogout, DeleteAMentor
 }

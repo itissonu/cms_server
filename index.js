@@ -5,6 +5,9 @@ const cookieParser = require('cookie-parser');
 const CourseRoute=require('./routes/CourseRoute');
 const DepartmentRoute=require('./routes/DepartmentRoute');
 const SectionRoute=require('./routes/SectionsRoutes');
+const otpRoute=require('./routes/OTPRoute')
+const userRoute=require('./routes/userRoute')
+const mentorRoute=require('./routes/mentorRoute')
 
 const DDbURL="mongodb+srv://bluepirateofficial:bluepirateofficial@cluster0.ehogrnu.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 
@@ -25,6 +28,9 @@ app.use(express.json());
 app.use('/api/course',CourseRoute)
 app.use('/api/department',DepartmentRoute)
 app.use('/api/section',SectionRoute)
+app.use('/api/otp',otpRoute)
+app.use('/api/user',userRoute)
+app.use('/api/mentor',mentorRoute)
 
 
 app.listen(8005,()=>{

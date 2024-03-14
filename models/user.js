@@ -54,6 +54,11 @@ const userSchema = mongoose.Schema({
             required: true,
             default: false
         },
+        transport:{
+            type: Boolean,
+            required: true,
+            default: false
+        },
         Lunch: {
             type: Boolean,
             required: true,
@@ -99,6 +104,7 @@ const userSchema = mongoose.Schema({
         type: String,
     },
     Guardian: {
+
         name: {
             type: String,
             required: true
@@ -168,8 +174,8 @@ const userSchema = mongoose.Schema({
         }
     },
     mentor:{
-        type: Boolean,
-        requiredLtrue,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Mentors",
         default: false
     },
     // isAdmin:{
@@ -177,6 +183,10 @@ const userSchema = mongoose.Schema({
     //     required: true,
     //     default: false
     // },
+    DueAmoumt:{
+        type:Number,
+       required:true     
+    },
     CreatedAt: {
         type: Date,
         default: Date.now()
