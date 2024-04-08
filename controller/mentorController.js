@@ -1,15 +1,16 @@
 //const Mentors = require("../models/Mentors");
-const OTP = require("../models/OTP");
+const OTP = require("../models/otp");
 const bcrypt = require("bcryptjs");
 const generateAuthToken = require("../utils/JWTtoken");
 const Mentors = require("../models/Mentors");
+const User = require("../models/user");
 
 //register
 const MentorRegister = async (req, res, next) => {
     try {
         const { email, otp, ...data } = req.body;
         console.log({ email, otp, ...data })
-
+s
         const user = await Mentors.findOne({ email });
         if (user) {
             return res.status(400).json({
@@ -152,7 +153,28 @@ const getAllMentor = async (req, res, next) => {
 //update a user
 const updateMentor = async (req, res, next) => {
     try {
+        const userId = req.params.id;
+        const updates = req.body;
+        const allowedUpdates = ['personalDetails.FirstName', 'personalDetails.LastName', 'personalDetails.MiddleName', 'profilePic', 'email'];
+        const isValidOperation = Object.keys(updates).every(update => allowedUpdates.includes(update));
 
+        if (!isValidOperation) {
+            return res.status(400).send({ error: 'Invalid updates!' });
+        }
+
+        try {
+            const user = await Mentors.findByIdAndUpdate(userId, { $set: updates }, { new: true, runValidators: true });
+
+            if (!user) {
+                return res.status(404).json({
+                    message: "no user found"
+                });
+            }
+
+            res.status(201).json(user);
+        } catch (error) {
+            res.status(400).send(error);
+        }
 
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
@@ -222,6 +244,151 @@ const OTPverification = async (req, res, next) => {
     }
 }
 
+//update password
+
+const updatePassword = async (req, res) => {
+
+    try {
+
+        const id = req.user._id;
+
+        let user = await Mentors.findById(id);
+        if (!user) {
+            user = await User.findById(id);
+        }
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'No User found ',
+            });
+        }
+      
+        const enteredPWD = req.body.currentpassword;
+
+        const enteredNewpwd = req.body.newpassword;
+
+        if (!enteredPWD || !enteredNewpwd) {
+            return res.status(400).json({
+                success: false,
+                message: 'Current password and new password are required',
+            });
+        }
+
+        if (!await bcrypt.compare(enteredPWD, user.password)) {
+            return res.status(401).json({
+                success: false,
+                message: 'given Password did not match with current password ',
+            });
+        }
+        let hashedpassword = await bcrypt.hash(enteredNewpwd, 10);
+
+        //const newUser = await Mentors.findByIdAndUpdate(id, { password: hashedpassword }, { new: true, runValidators: true });
+        user.password=hashedpassword;
+        await user.save();
+        res.status(200).json({
+            success: true,
+            message: "password updated successfully"
+        })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+const resetPassword = async (req, res) => {
+    try {
+
+        const otp = req.body.otp;
+
+        const response = await OTP.find({ otp: otp }).sort({ createdAt: -1 }).limit(1);
+        if (response.length === 0 || otp !== response[0].otp) {
+
+            return res.status(400).json({
+                success: false,
+                message: 'The OTP is not valid',
+            });
+
+        }
+        let user = await Mentors.findOne({ email: response[0].email })
+
+        if (!user) {
+
+            user = await User.findOne({ email: response[0].email })
+        }
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'No User found ',
+            });
+        }
+
+        const token = await generateAuthToken(user);
+
+        res.cookie("token", token, {
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            httpOnly: true,
+            secure: true,
+            sameSite: 'None',
+        }).status(200).json({
+            success: true,
+
+            message: "reset success", token,
+        })
+
+
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+
+}
+const endresetPassword = async (req, res) => {
+   
+    try {
+
+        const id = req.user._id;
+
+        let user = await Mentors.findById(id);
+
+        if (!user) {
+            user = await User.findById(id);
+        }
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'No User found ',
+            });
+        }
+        console.log(user);
+        
+        const newPassword = req.body.resetpassword;
+
+        const { password} = user;
+
+        console.log(password);
+
+        let hashedpassword = await bcrypt.hash(newPassword, 10);
+
+       // const newUser = await Mentors.findByIdAndUpdate(id, { password: hashedpassword }, { new: true, runValidators: true });
+      //  await newUser.save()
+
+      user.password=hashedpassword;
+        await user.save();
+
+        res.status(200).json({
+            success: true,
+            message: "password reset successfully"
+        })
+
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ success: false, error: error.message });
+    }
+}
+
+
+
 module.exports = {
-    MentorLogin, MentorRegister, getAllMentor, getaMentor, updateMentor, OTPverification, mentorLogout, DeleteAMentor
+    MentorLogin, MentorRegister, getAllMentor, getaMentor, updateMentor, OTPverification, mentorLogout, DeleteAMentor, updatePassword, resetPassword, endresetPassword
 }

@@ -6,6 +6,11 @@ const userSchema = mongoose.Schema({
         required: true,
         unique: true
     },
+    rollno:{
+        type: String,
+        required: true,
+        default:1
+    },
     password:{
         type: String,
     },
@@ -13,6 +18,33 @@ const userSchema = mongoose.Schema({
         type: String,
         required: true,
         unique: true
+    },
+    Academics:{
+        Matriculation:{
+            type: Number,
+            default:"NA"
+        },
+       UG:{
+            type: Number,
+            default:"NA"
+        },
+        Diploma:{
+            type: Number,
+            default:"NA"
+        },
+        BCA:{
+            type: Number,
+            default:"NA"
+        },
+        Class12:{
+            type: Number,
+            default:"NA"
+        },
+        MCA:{
+            type: Number,
+            default:"NA" 
+        },
+        
     },
     personalDetails:{
         FirstName: {
@@ -176,13 +208,16 @@ const userSchema = mongoose.Schema({
     mentor:{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Mentors",
+        
+    },
+    isAdmin:{
+        type: Boolean,
         default: false
     },
-    // isAdmin:{
-    //     type: Boolean,
-    //     required: true,
-    //     default: false
-    // },
+    isTeacher:{
+        type: Boolean,
+        default: false
+    },
     DueAmoumt:{
         type:Number,
        required:true     
