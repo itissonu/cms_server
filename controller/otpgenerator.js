@@ -1,5 +1,5 @@
 const otpGenerator = require('otp-generator');
-const OTP = require('../models/OTP');
+const OTP = require("../models/otp");
 const User = require('../models/user');
 const Mentors = require('../models/Mentors');
 
@@ -10,6 +10,7 @@ exports.sendOTP = async (req, res) => {
     const checkUserPresent = await Mentors.findOne({email:email}) || User.findOne({ email:email });
     
     console.log(checkUserPresent)
+
     // if (checkUserPresent) {
     //   return res.status(401).json({
     //     success: false,
@@ -79,8 +80,10 @@ exports.sendOTPLogin = async (req,res)=>{
     otp,
   });
 } catch (error) {
+ 
   console.log(error.message);
   return res.status(500).json({ success: false, error: error.message });
+
 }
 
 }

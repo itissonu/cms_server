@@ -1,8 +1,11 @@
 const jwt = require("jsonwebtoken");
-const user = require("../models/user");
+const User = require("../models/user");
+const Mentors = require("../models/Mentors");
+
+//const user = require("../models/user");
 
 
-exports.isAuthenticateotp = async (req, res, next) => {
+exports.isAuthenticate = async (req, res, next) => {
     try {
         const { token } = req.cookies;
 
@@ -16,10 +19,33 @@ exports.isAuthenticateotp = async (req, res, next) => {
         const data = jwt.verify(token
             , "soumyaranjansahu");
 
-        req.user = await user.findById(data._id);
+        let userdata = await User.findById(data._id);
+
+        if (!userdata) {
+            userdata = await Mentors.findById(data._id);
+        }
+
+        if (userdata) {
+            req.user = userdata;
+        } else {         
+            return res.status(404).json({
+                success: false,
+                message: 'User not found',
+            });
+        }
         next()
     } catch (error) {
 
     }
 
 };
+
+exports.isAuthorise = () => {
+    return (req, res, next) => {
+      
+      if (!(req.user.isTeacher || req.user.isAdmin)) {
+        return next(new createError(` is not allowed to access this resouce`, 403))
+      }
+      next();
+    };
+  };

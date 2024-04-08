@@ -1,4 +1,4 @@
-const OTP = require("../models/OTP");
+const OTP = require("../models/otp");
 const User = require("../models/user")
 const bcrypt = require("bcryptjs");
 const generateAuthToken = require("../utils/JWTtoken");
@@ -141,6 +141,26 @@ const getaUser = async (req, res, next) => {
     }
 
 }
+const getaUserByRegdNo = async (req, res, next) => {
+    try {
+        const RegdNo=req.body.RegdNo;
+        const user = await User.findOne(RegdNo).populate('Course','CourseName').populate('Department','DepartmentName').populate('Section','SectionName').select('-password');
+        
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'No User found ',
+            });
+        }
+        res.status(201).json({
+            success: true,
+            user
+        })
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
+
+}
 
 //logout 
 
@@ -198,9 +218,40 @@ const DeleteAUser = async (req, res, next) => {
 }
 
 const updateUser = async (req, res, next) => {
+    try {
+        const id= req.user._id;
+        const user=await User.findById(id);
+        if(!user){
+            return res.status(401).json({
+                success: false,
+                message: 'No User found ',
+            });
+        }
     
+        const enteredPWD=req.body.currentpassword;
+
+        const enteredNewpwd=req.body.newpassword;
+
+        if (!await bcrypt.compare(enteredPWD, user.password)) {
+            return res.status(401).json({
+                success: false,
+                message: 'given Password did not match with current password ',
+            });
+        }
+        let hashedpassword = await bcrypt.hash(enteredNewpwd, 10);
+
+        const newUser = await Mentors.findByIdAndUpdate(id, { password:hashedpassword }, { new: true, runValidators: true });
+           
+        res.status(200).json({
+                success:true,
+                message:"password updated successfully"
+            })
+
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }    
 
 }
 module.exports = {
-    userLogin, userRegister, getAlluser, getaUser, updateUser,OTPverificationUser,Logout,DeleteAUser
+    userLogin, userRegister, getAlluser, getaUser, updateUser,OTPverificationUser,Logout,DeleteAUser,getaUserByRegdNo
 }
