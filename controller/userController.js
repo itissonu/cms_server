@@ -105,14 +105,15 @@ const OTPverificationUser = async (req, res, next) => {
         }
         const user = await User.findOne({ email: response[0].email }).select('-password')
         const token = await generateAuthToken(user);
+      
         res.cookie("token", token, {
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
             httpOnly: true,
             secure: true,
             sameSite: 'None',
         }).status(200).json({
             success: true,
-            message: "login success", token,
+            message: "login success", token,user
         })
 
     } catch (error) {
@@ -124,8 +125,8 @@ const OTPverificationUser = async (req, res, next) => {
 // get a singleuser
 const getaUser = async (req, res, next) => {
     try {
-        const user = await User.findById(req.params.id).populate('Course','CourseName').populate('Department','DepartmentName').populate('Section','SectionName').select('-password');
-        
+        const user = await User.findById(req.params.id).populate('Course', 'CourseName').populate('Department', 'DepartmentName').populate('Section', 'SectionName').select('-password');
+
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -143,9 +144,9 @@ const getaUser = async (req, res, next) => {
 }
 const getaUserByRegdNo = async (req, res, next) => {
     try {
-        const RegdNo=req.body.RegdNo;
-        const user = await User.findOne(RegdNo).populate('Course','CourseName').populate('Department','DepartmentName').populate('Section','SectionName').select('-password');
-        
+        const RegdNo = req.body.RegdNo;
+        const user = await User.findOne(RegdNo).populate('Course', 'CourseName').populate('Department', 'DepartmentName').populate('Section', 'SectionName').select('-password');
+
         if (!user) {
             return res.status(401).json({
                 success: false,
@@ -219,18 +220,18 @@ const DeleteAUser = async (req, res, next) => {
 
 const updateUser = async (req, res, next) => {
     try {
-        const id= req.user._id;
-        const user=await User.findById(id);
-        if(!user){
+        const id = req.user._id;
+        const user = await User.findById(id);
+        if (!user) {
             return res.status(401).json({
                 success: false,
                 message: 'No User found ',
             });
         }
-    
-        const enteredPWD=req.body.currentpassword;
 
-        const enteredNewpwd=req.body.newpassword;
+        const enteredPWD = req.body.currentpassword;
+
+        const enteredNewpwd = req.body.newpassword;
 
         if (!await bcrypt.compare(enteredPWD, user.password)) {
             return res.status(401).json({
@@ -240,18 +241,50 @@ const updateUser = async (req, res, next) => {
         }
         let hashedpassword = await bcrypt.hash(enteredNewpwd, 10);
 
-        const newUser = await Mentors.findByIdAndUpdate(id, { password:hashedpassword }, { new: true, runValidators: true });
-           
+        const newUser = await Mentors.findByIdAndUpdate(id, { password: hashedpassword }, { new: true, runValidators: true });
+
         res.status(200).json({
-                success:true,
-                message:"password updated successfully"
-            })
+            success: true,
+            message: "password updated successfully"
+        })
 
     } catch (error) {
         return res.status(500).json({ success: false, error: error.message });
-    }    
+    }
+
+}
+const getuserBySectionsAndall = async (req, res) => {
+    try {
+        let query = {};
+        if (req.query.Department) {
+            query.Department = req.query.Department;
+        }
+        if (req.query.Course) {
+            query.Course = req.query.Course;
+        }
+        if (req.query.Section) {
+            query.Section = req.query.Section;
+        }
+        const allstudents = await User.find(query).populate("Department").populate("Section").select(" RegdNo personalDetails  Department rollno  Section _id ")
+
+        if (!allstudents.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "no user found",
+                alluser: []
+
+            })
+        }
+
+        res.status(201).json({
+            success: true,
+            alluser: allstudents
+        })
+    } catch (error) {
+        return res.status(500).json({ success: false, error: error.message });
+    }
 
 }
 module.exports = {
-    userLogin, userRegister, getAlluser, getaUser, updateUser,OTPverificationUser,Logout,DeleteAUser,getaUserByRegdNo
+    userLogin, userRegister, getAlluser, getaUser, updateUser, OTPverificationUser, Logout, DeleteAUser, getaUserByRegdNo, getuserBySectionsAndall
 }

@@ -86,22 +86,31 @@ const findallattendance = async (req, res) => {
         respSubjects.forEach(subject => {
             const { subjectName, _id } = subject;
             attendanceBySubject[subjectName] = {
-                subjectId: _id,
+                subjectId:subjectName,
                 present: 0,
-                absent: 0,
+                absent: 0,         
                 presentDate: [],
                 absentDate: []
             };
         });
-
+      
         att.forEach(attendance => {
             const subjectName = attendance.subject.subjectName;
+            
             if (attendance.Students.includes(studentdetails._id)) {
+                let attendanceRecord = {
+                    date: attendance.date,
+                    time: attendance.time,
+                };
                 attendanceBySubject[subjectName].present++;
-                attendanceBySubject[subjectName].presentDate.push(attendance.date)
+                attendanceBySubject[subjectName].presentDate.push(attendanceRecord)
             } else {
+                let attendanceRecord = {
+                    date: attendance.date,
+                    time: attendance.time,
+                };
                 attendanceBySubject[subjectName].absent++;
-                attendanceBySubject[subjectName].absentDate.push(attendance.date)
+                attendanceBySubject[subjectName].absentDate.push(attendanceRecord)
             }
         });
 
@@ -129,7 +138,7 @@ const AllStudentAttendance = async (req, res) => {
             query.subject = req.query.subject;
         }
         console.log(query)
-        const allstudents = await user.find(query).populate("Department").populate("Section").select(" RegdNo personalDetails  Department   Section _id")
+        const allstudents = await user.find(query).populate("Department").populate("Section").select(" RegdNo personalDetails  Department rollno  Section _id")
 
         const attendances = await Attendance.find(query)
     

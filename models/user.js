@@ -21,28 +21,97 @@ const userSchema = mongoose.Schema({
   },
   Academics: {
     Matriculation: {
-      type: Number,
-      default: null,
+      percentage:{
+        type: Number,
+        default: null,
+      },
+      institution:{
+        type: String,
+       default:'NA'
+      },
+      PassingYear:{
+        type: Number,
+        default: null,
+      },
+     
     },
     UG: {
-      type: Number,
-      default: null,
+      percentage:{
+        type: Number,
+        default: null,
+      },
+      paper:{
+        type: String,
+        default:'NA'
+      },
+      institution:{
+        type: String,
+       default:'NA'
+      },
+      PassingYear:{
+        type: Number,
+        default: null,
+      },
     },
     Diploma: {
-      type: Number,
-      default: null,
+      percentage:{
+        type: Number,
+        default: null,
+      },
+      paper:{
+        type: String,
+        default:'NA'
+      },
+      institution:{
+        type: String,
+       default:'NA'
+      },
+      PassingYear:{
+        type: Number,
+        default: null,
+      },
     },
     BCA: {
-      type: Number,
-      default: null,
+      percentage:{
+        type: Number,
+        default: null,
+      },
+      institution:{
+        type: String,
+       default:'NA'
+      },
+      PassingYear:{
+        type: Number,
+        default: null,
+      },
     },
     Class12: {
-      type: Number,
-      default: null,
+      percentage:{
+        type: Number,
+        default: null,
+      },
+      institution:{
+        type: String,
+       default:'NA'
+      },
+      PassingYear:{
+        type: Number,
+        default: null,
+      },
     },
     MCA: {
-      type: Number,
-      default: null,
+      percentage:{
+        type: Number,
+        default: null,
+      },
+      institution:{
+        type: String,
+       default:'NA'
+      },
+      PassingYear:{
+        type: Number,
+        default: null,
+      },
     },
   },  
   personalDetails: {
