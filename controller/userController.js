@@ -2,6 +2,7 @@ const OTP = require("../models/otp");
 const User = require("../models/user")
 const bcrypt = require("bcryptjs");
 const generateAuthToken = require("../utils/JWTtoken");
+const Mentors = require("../models/Mentors");
 
 const userRegister = async (req, res, next) => {
     try {
@@ -42,6 +43,7 @@ const userRegister = async (req, res, next) => {
             sameSite: 'None',
         }).status(201).json({
             success: true,
+            message:"Registration done",
             user: newUser
             , token,
         });
@@ -65,7 +67,18 @@ const userLogin = async (req, res, next) => {
             });
         }
         console.log(email)
-        const user = await User.findOne({ email: email });
+        // const user = await User.findOne({ email: email });
+        let user = await Mentors.findOne({ email: email });
+        if (!user) {
+            user = await User.findOne({ email: email });
+        }
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: 'No User found ',
+            });
+        }
 
         if (!user) {
             return res.status(401).json({
@@ -103,7 +116,13 @@ const OTPverificationUser = async (req, res, next) => {
             });
 
         }
-        const user = await User.findOne({ email: response[0].email }).select('-password')
+      
+      
+        let user = await User.findOne({ email: response[0].email }).select('-password')
+        if (!user) {
+            user = await Mentors.findOne({ email: response[0].email }).select('-password');
+        }
+        
         const token = await generateAuthToken(user);
       
         res.cookie("token", token, {
@@ -189,6 +208,16 @@ const Logout = async (req, res) => {
 
 const getAlluser = async (req, res, next) => {
 
+    let query={}
+    if (req.query.Course) {
+        query.Course = req.query.Course;
+    }
+    if (req.query.Department) {
+        query.Department = req.query.Department;
+    }
+    if (req.query.Section) {
+        query.Section = req.query.Section;
+    }
     try {
         const users = await User.find().select('-password')
         res.status(201).
@@ -198,6 +227,7 @@ const getAlluser = async (req, res, next) => {
     }
 
 }
+
 
 const DeleteAUser = async (req, res, next) => {
 
@@ -265,7 +295,7 @@ const getuserBySectionsAndall = async (req, res) => {
         if (req.query.Section) {
             query.Section = req.query.Section;
         }
-        const allstudents = await User.find(query).populate("Department").populate("Section").select(" RegdNo personalDetails  Department rollno  Section _id ")
+        const allstudents = await User.find(query).populate("Department").populate("Section").select(" RegdNo personalDetails  Department rollno profilePic Section _id ")
 
         if (!allstudents.length === 0) {
             return res.status(400).json({
@@ -275,7 +305,7 @@ const getuserBySectionsAndall = async (req, res) => {
 
             })
         }
-
+       
         res.status(201).json({
             success: true,
             alluser: allstudents

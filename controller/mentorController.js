@@ -10,7 +10,7 @@ const MentorRegister = async (req, res, next) => {
     try {
         const { email, otp, ...data } = req.body;
         console.log({ email, otp, ...data })
-s
+
         const user = await Mentors.findOne({ email });
         if (user) {
             return res.status(400).json({

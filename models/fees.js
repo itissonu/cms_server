@@ -21,7 +21,7 @@ const feesSchema = new mongoose.Schema({
   },
   paymentMethod: {
     type: String,
-    required: true,
+    
   },
   paidAmount: {
     type: Number,
@@ -30,6 +30,14 @@ const feesSchema = new mongoose.Schema({
   isDeleted: {
     type: Boolean,
     default: false,
+  },
+  type: {
+    type: String,
+    enum: ["credited", "debited"],
+    default: "credited",
+  },
+  description: {
+    type: String
   },
   createdAt: {
     type: Date,

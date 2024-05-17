@@ -17,7 +17,7 @@ const TakeAttendace = async (req, res) => {
             time,
             Section,
             subject,
-            teacher: teacherId, teacher: teacherId
+            teacher: teacherId
         });
         const dateObject = new Date(date);
 
@@ -62,18 +62,18 @@ const TakeAttendace = async (req, res) => {
 //find attendance of a single student sem wise
 const findallattendance = async (req, res) => {
     try {
-        let query={}
+        let query = {}
 
         if (req.query._id) {
             query._id = req.query._id;
-            
+
         }
         if (req.query.RegdNo) {
             query.RegdNo = req.query.RegdNo;
         }
-      
+
         const studentdetails = await user.findOne(query);
-        if(!studentdetails){
+        if (!studentdetails) {
             return res.status(400).json("No user found")
         }
 
@@ -86,17 +86,17 @@ const findallattendance = async (req, res) => {
         respSubjects.forEach(subject => {
             const { subjectName, _id } = subject;
             attendanceBySubject[subjectName] = {
-                subjectId:subjectName,
+                subjectId: subjectName,
                 present: 0,
-                absent: 0,         
+                absent: 0,
                 presentDate: [],
                 absentDate: []
             };
         });
-      
+
         att.forEach(attendance => {
             const subjectName = attendance.subject.subjectName;
-            
+
             if (attendance.Students.includes(studentdetails._id)) {
                 let attendanceRecord = {
                     date: attendance.date,
@@ -114,10 +114,41 @@ const findallattendance = async (req, res) => {
             }
         });
 
-        res.status(201).json({ attendanceBySubject ,Student:studentdetails.personalDetails.FirstName});
+        res.status(201).json({ attendanceBySubject, Student: studentdetails.personalDetails.FirstName });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
+}
+const findStudentAttendanceFilter = async (req, res) => {
+    
+    const { time, Section, date, subject, ...data } = req.body;
+    const findatndc = await Attendance.find().populate('subject');
+   
+    const result = findatndc.filter(element => {
+        const elementDate = new Date(element.date).toISOString().split('T')[0];
+        const requestedDate = new Date(date).toISOString().split('T')[0];
+        return elementDate === requestedDate ;
+    }); 
+
+    if (!findatndc) {
+        return res.status(401).json({
+            success: false,
+            message: "error during fetching Fees "
+        })
+    }
+    if (findatndc.length === 0) {
+        return res.status(201).json({
+            success: true,
+            message: "No attendance found",
+            attendance: [],
+        })
+    }
+
+    return res.status(201).json({
+        success: true,
+        message: "Attendance record  successfully",
+        attendance: result,
+    })
 }
 
 //find attendance of all student irrespective of cource and batch
@@ -141,7 +172,7 @@ const AllStudentAttendance = async (req, res) => {
         const allstudents = await user.find(query).populate("Department").populate("Section").select(" RegdNo personalDetails  Department rollno  Section _id")
 
         const attendances = await Attendance.find(query)
-    
+
         let attendanceOfStudents = {};
 
         allstudents.forEach(stud => {
@@ -171,30 +202,30 @@ const AllStudentAttendance = async (req, res) => {
 
 //find attendances by course of allstudents
 
-const TotalAttendances =async(req,res)=>{
+const TotalAttendances = async (req, res) => {
     try {
-       let query={};
-       if (req.query.Department) {
-        query.Department = req.query.Department;
-    }
-    if (req.query.Course) {
-        query.Course = req.query.Course;
-    }
-    if (req.query.Section) {
-        query.Section = req.query.Section;
-    }
-    if (req.query.subject) {
-        query.subject = req.query.subject;
-    }
-    const attendances = await Attendance.find(query)
+        let query = {};
+        if (req.query.Department) {
+            query.Department = req.query.Department;
+        }
+        if (req.query.Course) {
+            query.Course = req.query.Course;
+        }
+        if (req.query.Section) {
+            query.Section = req.query.Section;
+        }
+        if (req.query.subject) {
+            query.subject = req.query.subject;
+        }
+        const attendances = await Attendance.find(query)
 
-    res.status(201).json({
-       ToatalAttendances:attendances.length
-    })
-   
+        res.status(201).json({
+            ToatalAttendances: attendances.length
+        })
+
     } catch (error) {
-        res.status(500).json({ error: error.message }); 
+        res.status(500).json({ error: error.message });
     }
 }
 
-module.exports = { TakeAttendace, findallattendance, TotalAttendances ,AllStudentAttendance}
+module.exports = { TakeAttendace, findallattendance, TotalAttendances, AllStudentAttendance, findStudentAttendanceFilter }

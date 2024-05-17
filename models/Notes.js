@@ -21,7 +21,8 @@ const NotesSchema= mongoose.Schema({
     type: {
         type: String,
         enum: ['article', 'video'],
-        required: true
+        required: true,
+        default:'article'
       },
     createdAt: {
         type: Date,

@@ -7,7 +7,9 @@ const createNote = async (req, res) => {
         const { URL, Description, subject, DepartmentName, type } = req.body;
         const newNote = new Notes({ URL, Description, subject, DepartmentName, type });
         const savedNote = await newNote.save();
-        res.status(201).json(savedNote);
+        res.status(201).json({success:true,
+            message:"Created Successfukky",
+            savedNote});
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -19,7 +21,7 @@ const editNote = async (req, res) => {
         const { id } = req.params;
         const { URL, Description, subject, DepartmentName, type } = req.body;
         const updatedNote = await Notes.findByIdAndUpdate(id, { URL, Description, subject, DepartmentName, type }, { new: true });
-        res.status(200).json(updatedNote);
+        res.status(200).json({success:true,message:"updated",updatedNote});
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -49,7 +51,10 @@ const getallArticles=async(req,res)=>{
     try {
         const videos = await Notes.find().populate('subject');
         
-        res.status(200).json(videos);
+        res.status(200).json({
+            message:"all article",
+            data:videos
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -114,7 +119,7 @@ const createNotice = async (req, res) => {
 const getAllNotices = async (req, res) => {
     try {
         const notices = await Notice.find();
-        res.status(200).json(notices);
+        res.status(200).json({data:notices});
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

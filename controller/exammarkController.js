@@ -9,7 +9,7 @@ const subject = require("../models/subject");
 const createExamMark = async (req, res) => {
 
     try {
-        const { userId, securedMark, examSubject } = req.body;
+        const { userId, securedMark, examSubject,semester } = req.body;
         if (!userId || !securedMark || !examSubject) {
             return res.status(400).json({
                 success: false,
@@ -22,8 +22,10 @@ const createExamMark = async (req, res) => {
             const updatemark = await ExamMark.findOneAndUpdate({
                 userId: userId,
                 examSubject: examSubject,
+                semester:semester
             }, { securedMark: securedMark }, { new: true });
             if (!updatemark) {
+                
                 throw new Error("Failed to update attendance record");
             }
             return res.status(201).json({
@@ -32,7 +34,7 @@ const createExamMark = async (req, res) => {
                 mark: updatemark,
             })
         }
-        const newMark = new ExamMark({ userId, securedMark, examSubject })
+        const newMark = new ExamMark({ userId, securedMark, examSubject,semester })
         const savenewMark = await newMark.save()
         res.status(201).json({
             success: true,
@@ -97,7 +99,7 @@ const getExamMarkBySection = async (req, res) => {
                     securedMark: 0,
                 };
             });
-            return res.status(400).json(studentResults)
+            return res.status(200).json(studentResults)
         }
 
         const filteredMark = allMarks.filter(marks => (marks.examSubject.subject._id).toString() === (examSubjectId));
@@ -126,6 +128,7 @@ const getExamMarkBySection = async (req, res) => {
     }
 
 }
+
 const getExamMarkOfAnUser = async (req, res) => {
     try {
         const userId = req.params.id;
