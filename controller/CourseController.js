@@ -54,6 +54,61 @@ try {
 }
 
 }
+const updateCourse = async (req, res, next) => {
+    try {
+      const { id } = req.params; 
+      const { CourseName, Fee } = req.body;
+  
+      const course = await Course.findByIdAndUpdate(id, { CourseName, Fee }, { new: true });
+  
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found",
+        });
+      }
+  
+      res.status(200).json({
+        success: true,
+        message: "Course updated successfully",
+        course,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to update course",
+        error: error.message,
+      });
+    }
+  };
+  const getCourseById = async (req, res, next) => {
+    try {
+      const { id } = req.params;
+  
+      const course = await Course.findById(id);
+  
+      if (!course) {
+        return res.status(404).json({
+          success: false,
+          message: "Course not found",
+        });
+      }
+  
+      res.status(200).json({
+        success: true,
+        course,
+      });
+    } catch (error) {
+      console.log(error);
+      res.status(500).json({
+        success: false,
+        message: "Failed to fetch course",
+        error: error.message,
+      });
+    }
+  };
+  
 module.exports={
-    CreateCourse,getAllCourse 
+    CreateCourse,getAllCourse ,updateCourse,getCourseById
 } 

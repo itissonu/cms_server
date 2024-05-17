@@ -7,5 +7,8 @@ const CourseSchema= mongoose.Schema({
         unique: true,
         default:null
     },
+    Fee:{
+        type:Number
+    }
 })
 module.exports=mongoose.model("Course",CourseSchema);

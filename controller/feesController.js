@@ -8,8 +8,9 @@ const createFees = async (req, res) => {
     "userId",
     "departmentId",
     "courseId",
-    "paymentMethod",
+   
     "paidAmount",
+    "type",
   ];
 
   let missingAttributes = [];
@@ -67,10 +68,15 @@ const createFees = async (req, res) => {
     const newFee = req.body;
     const savedFee = new Fees(newFee);
     await savedFee.save();
-    user.DueAmount = Math.max(
-      parseInt(user.DueAmount, 10) - parseInt(req.body.paidAmount, 10),
-      0
-    );
+    if (req.body.type === "credited") {
+      user.DueAmount = Math.max(
+        parseInt(user.DueAmount, 10) - parseInt(req.body.paidAmount, 10),
+        0
+      );
+    } else if (req.body.type === "debited") {
+      user.DueAmount = parseInt(user.DueAmount, 10) + parseInt(req.body.paidAmount, 10);
+    }
+   
     await user.save();
 
     return res
@@ -141,7 +147,7 @@ const deleteFees = async (req, res) => {
 
 const getFees = async (req, res) => {
   try {
-    const fees = await Fees.find();
+    const fees = await Fees.find().populate('userId').populate('departmentId').populate('courseId');
 
     res.status(200).json({
       success: true,

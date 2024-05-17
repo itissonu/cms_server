@@ -8,7 +8,7 @@ const Mentors = require("../models/Mentors");
 exports.isAuthenticate = async (req, res, next) => {
     try {
         const { token } = req.cookies;
-
+        console.log(token)
         if (!token) {
 
             return res.status(401).json({
@@ -27,7 +27,7 @@ exports.isAuthenticate = async (req, res, next) => {
 
         if (userdata) {
             req.user = userdata;
-        } else {         
+        } else {
             return res.status(404).json({
                 success: false,
                 message: 'User not found',
@@ -42,10 +42,10 @@ exports.isAuthenticate = async (req, res, next) => {
 
 exports.isAuthorise = () => {
     return (req, res, next) => {
-      
-      if (!(req.user.isTeacher || req.user.isAdmin)) {
-        return next(new createError(` is not allowed to access this resouce`, 403))
-      }
-      next();
+
+        if (!(req.user.isTeacher || req.user.isAdmin)) {
+            return next(new createError(` is not allowed to access this resouce`, 403))
+        }
+        next();
     };
-  };
+};
